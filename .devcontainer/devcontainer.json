@@ -1,0 +1,25 @@
+{
+  // Environnement prêt à l'emploi pour GitHub Codespaces (et VS Code Dev Containers).
+  // À l'ouverture : installation des dépendances, puis lancement du serveur et du client.
+  "name": "EVOLVE.IO",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22-bookworm",
+  "postCreateCommand": "npm install -g pnpm@10.28.0 && pnpm install",
+  "postAttachCommand": "pnpm dev",
+  // Seul le port du client est utile : il relaie le serveur de jeu sous /colyseus.
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "EVOLVE.IO (jeu)",
+      "onAutoForward": "openBrowser"
+    },
+    "2567": {
+      "label": "Serveur de jeu (interne)",
+      "onAutoForward": "silent"
+    }
+  },
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["docs/TESTER-LE-JEU.md"]
+    }
+  }
+}

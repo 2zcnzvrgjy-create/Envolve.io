@@ -17,6 +17,11 @@ Jeu .io multijoueur en temps réel sur navigateur : collecte de l'énergie, évo
 
 Toutes les valeurs sont dans `packages/shared/src/config.ts`.
 
+## Essayer le jeu sans rien installer
+
+Voir [docs/TESTER-LE-JEU.md](docs/TESTER-LE-JEU.md) : guide pas à pas avec GitHub
+Codespaces, sans aucune commande à taper.
+
 ## Architecture
 
 ```
@@ -68,8 +73,9 @@ automatisés, débogage). Cet accès n'existe pas dans le build de production.
 
 Pour tester en multijoueur : ouvrir http://localhost:5173 dans deux navigateurs (ou
 une fenêtre privée), cliquer **JOUER** dans chacun ; le badge affiche le nombre de
-joueurs de la salle. Depuis un autre appareil du réseau local, utiliser l'IP de la
-machine : le client vise par défaut le même hôte, port 2567.
+joueurs de la salle. Depuis un autre appareil du réseau local, utiliser
+`http://<IP de la machine>:5173` : seul ce port est nécessaire, car Vite relaie le
+serveur de jeu sous `/colyseus`.
 
 ## Configuration
 
@@ -77,7 +83,8 @@ machine : le client vise par défaut le même hôte, port 2567.
 | ----------------- | -------- | -------------------------- | ----------------------------- |
 | `PORT`            | serveur  | `2567`                     | Port HTTP/WebSocket           |
 | `HOST`            | serveur  | `0.0.0.0`                  | Adresse d'écoute              |
-| `VITE_SERVER_URL` | client   | `ws(s)://<hôte de la page>:2567` | URL du serveur (au build) |
+| `VITE_SERVER_URL` | client   | `<adresse de la page>/colyseus` | URL du serveur (au build) |
+| `GAME_SERVER_TARGET` | Vite (dev) | `http://localhost:2567` | Cible du relais `/colyseus` |
 
 Endpoint de santé : `GET /health` → `{"status":"ok","uptimeSeconds":…}`.
 
