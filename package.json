@@ -1,0 +1,24 @@
+{
+  "name": "evolve-io",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @evolve/server --filter @evolve/web dev",
+    "dev:server": "pnpm --filter @evolve/server dev",
+    "dev:web": "pnpm --filter @evolve/web dev",
+    "build": "pnpm --filter @evolve/shared build && pnpm --filter @evolve/server --filter @evolve/web build",
+    "start": "pnpm --filter @evolve/server start",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "check": "pnpm typecheck && pnpm test && pnpm build",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}

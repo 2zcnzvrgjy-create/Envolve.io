@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1020" />
+    <title>EVOLVE.IO</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div id="game" aria-hidden="true"></div>
+
+    <main id="menu" class="panel">
+      <h1 class="logo">EVOLVE<span>.IO</span></h1>
+      <p class="tagline">Collecte. Évolue. Survis.</p>
+      <form id="play-form" autocomplete="off">
+        <label class="sr-only" for="player-name">Pseudo</label>
+        <input id="player-name" name="name" type="text" maxlength="16" placeholder="Ton pseudo" spellcheck="false" />
+        <button id="play-button" type="submit">JOUER</button>
+      </form>
+      <p id="menu-error" class="error" role="alert" hidden></p>
+    </main>
+
+    <aside id="session" class="session" hidden>
+      <span class="dot" aria-hidden="true"></span>
+      <span id="session-text">Connecté</span>
+      <button id="leave-button" type="button">Quitter</button>
+    </aside>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
