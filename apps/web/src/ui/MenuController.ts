@@ -1,7 +1,15 @@
-import { CloseCode } from "@colyseus/sdk";
-import type { GameConnection, SessionInfo } from "../net/GameConnection";
+import { CloseCode, type Room } from "@colyseus/sdk";
+import type { ArenaState } from "@evolve/shared";
+import type { GameConnection } from "../net/GameConnection";
 import { requireElement } from "./dom";
 import { loadPlayerName, savePlayerName } from "./storage";
+
+export interface MenuHooks {
+  /** Appelé une fois la salle rejointe. */
+  onEnterGame: (room: Room<ArenaState>) => void;
+  /** Appelé au retour au menu (départ volontaire ou déconnexion). */
+  onExitGame: () => void;
+}
 
 /** Relie le menu HTML et le badge de session à la connexion réseau. */
 export class MenuController {
@@ -14,7 +22,10 @@ export class MenuController {
   private readonly sessionText = requireElement("session-text", HTMLSpanElement);
   private readonly leaveButton = requireElement("leave-button", HTMLButtonElement);
 
-  constructor(private readonly connection: GameConnection) {}
+  constructor(
+    private readonly connection: GameConnection,
+    private readonly hooks: MenuHooks,
+  ) {}
 
   mount(): void {
     this.nameInput.value = loadPlayerName();
@@ -35,19 +46,23 @@ export class MenuController {
     this.showError(null);
 
     try {
-      await this.connection.joinSolo(name, {
-        onSessionChanged: (info) => this.renderSession(info),
-        onDisconnected: (code) => {
-          this.showMenu();
-          this.showError(
-            code === CloseCode.SERVER_SHUTDOWN
-              ? "Le serveur redémarre. Réessaie dans un instant."
-              : "Connexion perdue avec le serveur.",
-          );
-        },
+      const room = await this.connection.joinSolo(name, (code) => {
+        this.showMenu();
+        this.showError(
+          code === CloseCode.SERVER_SHUTDOWN
+            ? "Le serveur redémarre. Réessaie dans un instant."
+            : "Connexion perdue avec le serveur.",
+        );
       });
+      const renderSession = (state: ArenaState) => this.renderSession(room.roomId, state.players?.size ?? 0);
+      room.onStateChange(renderSession);
+
       this.menu.hidden = true;
       this.session.hidden = false;
+      // Le formulaire ne doit pas garder le focus clavier, réservé au jeu.
+      this.nameInput.blur();
+      this.playButton.blur();
+      this.hooks.onEnterGame(room);
     } catch (error) {
       console.error("[evolve] connexion impossible", error);
       this.showError("Impossible de rejoindre le serveur. Est-il démarré ?");
@@ -57,16 +72,18 @@ export class MenuController {
   }
 
   private async leave(): Promise<void> {
+    this.leaveButton.blur();
     await this.connection.leave();
     this.showMenu();
   }
 
-  private renderSession({ roomId, playerCount }: SessionInfo): void {
+  private renderSession(roomId: string, playerCount: number): void {
     const players = playerCount > 1 ? `${playerCount} joueurs` : `${playerCount} joueur`;
     this.sessionText.textContent = `${players} · salle ${roomId}`;
   }
 
   private showMenu(): void {
+    this.hooks.onExitGame();
     this.session.hidden = true;
     this.menu.hidden = false;
     this.nameInput.focus();

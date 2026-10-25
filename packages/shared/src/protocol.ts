@@ -14,3 +14,18 @@ export type RoomName = (typeof ROOM_NAMES)[keyof typeof ROOM_NAMES];
 export interface JoinOptions {
   name?: string;
 }
+
+/** Types des messages envoyés par le client. */
+export const CLIENT_MESSAGES = {
+  /** Direction de déplacement souhaitée. */
+  input: "input",
+} as const;
+
+/**
+ * Direction souhaitée, de norme ≤ 1 (0 = immobile, 1 = vitesse maximale).
+ * Le serveur renormalise toute valeur hors limites.
+ */
+export interface InputMessage {
+  x: number;
+  y: number;
+}

@@ -1,7 +1,7 @@
 import { createServer } from "node:net";
 import { Client, type Room } from "@colyseus/sdk";
 import type { Server } from "@colyseus/core";
-import { ROOM_NAMES, type ArenaState } from "@evolve/shared";
+import { CLIENT_MESSAGES, ENERGY_CONFIG, ROOM_NAMES, type ArenaState } from "@evolve/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createGameServer } from "../src/createGameServer.js";
 
@@ -66,5 +66,34 @@ describe("salle SOLO (vrais clients WebSocket)", () => {
     expect(roomA.state.players.has(roomB.sessionId)).toBe(false);
 
     await roomA.leave();
+  });
+
+  it("diffuse aux autres clients le déplacement calculé par le serveur", async () => {
+    const endpoint = `ws://127.0.0.1:${port}`;
+    const mover: Room<ArenaState> = await new Client(endpoint).joinOrCreate(ROOM_NAMES.solo, { name: "Mover" });
+    const watcher: Room<ArenaState> = await new Client(endpoint).joinOrCreate(ROOM_NAMES.solo, { name: "Watcher" });
+
+    await waitFor(() => watcher.state.players?.get(mover.sessionId) !== undefined);
+    expect(watcher.state.energy.size).toBe(ENERGY_CONFIG.count);
+
+    const seen = watcher.state.players.get(mover.sessionId)!;
+    const startX = seen.x;
+    // Va vers le côté qui offre le plus de place, pour ne pas buter sur un bord.
+    const direction = startX < 2000 ? 1 : -1;
+    mover.send(CLIENT_MESSAGES.input, { x: direction, y: 0 });
+
+    await waitFor(() => Math.abs(seen.x - startX) > 50);
+    expect(Math.sign(seen.x - startX)).toBe(direction);
+
+    // Une entrée malformée est ignorée sans déconnecter le client.
+    mover.send(CLIENT_MESSAGES.input, { x: "vite", y: null });
+    mover.send(CLIENT_MESSAGES.input, { x: 0, y: 0 });
+    await new Promise((r) => setTimeout(r, 200));
+    const stoppedX = seen.x;
+    await new Promise((r) => setTimeout(r, 200));
+    expect(seen.x).toBe(stoppedX);
+
+    await mover.leave();
+    await watcher.leave();
   });
 });
